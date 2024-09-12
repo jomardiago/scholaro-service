@@ -9,6 +9,7 @@ import { compare } from "bcrypt";
 
 import { UsersService } from "src/users/users.service";
 import { LoginDto } from "./dtos/login.dto";
+import { TokenPayload } from "src/@types";
 
 @Injectable()
 export class AuthService {
@@ -35,9 +36,32 @@ export class AuthService {
         ...user,
         access_token: this.jwtService.sign(payload, {
           secret: process.env.JWT_ACCESS_SECRET,
-          expiresIn: "15m",
+          expiresIn: "30m",
         }),
         refresh_token: this.jwtService.sign(payload, {
+          secret: process.env.JWT_REFRESH_SECRET,
+          expiresIn: "7d",
+        }),
+      };
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
+  }
+
+  async refresh(payload: TokenPayload) {
+    const user = await this.usersService.getUserByEmail(payload.email);
+    delete user.password;
+
+    const newPayload = { sub: user.id, email: user.email };
+    try {
+      return {
+        ...user,
+        access_token: this.jwtService.sign(newPayload, {
+          secret: process.env.JWT_ACCESS_SECRET,
+          expiresIn: "30m",
+        }),
+        refresh_token: this.jwtService.sign(newPayload, {
           secret: process.env.JWT_REFRESH_SECRET,
           expiresIn: "7d",
         }),
