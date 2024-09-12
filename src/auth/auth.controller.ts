@@ -1,5 +1,10 @@
 import { Body, Controller, Post, Request, UseGuards } from "@nestjs/common";
-import { ApiBody, ApiOperation, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBody,
+  ApiExcludeEndpoint,
+  ApiOperation,
+  ApiTags,
+} from "@nestjs/swagger";
 
 import { AuthService } from "./auth.service";
 import { LoginDto } from "./dtos/login.dto";
@@ -22,6 +27,7 @@ export class AuthController {
   }
 
   @Post("refresh")
+  @ApiExcludeEndpoint()
   @UseGuards(RefreshGuard)
   refresh(@Request() req: { user: TokenPayload }) {
     return this.authService.refresh(req.user);
